@@ -11,29 +11,13 @@
 source("Code/packages.R")
 
 
-# load data ---------------------------------------------------------------
-
-read_delim("data/Term Paper/ccl.txt", delim = "|", col_names = F) -> commitee_link
-
-rep_objectors <- read_delim("Data/Term Paper/Rep_Objectors.csv", 
-                            ";", escape_double = FALSE, trim_ws = TRUE) %>% 
-  rename("district" = 2)
-
-# prepare data ------------------------------------------------------------
-
-
-var_names <- c("CAND_ID","CAND_ELECTION_YR","FEC_ELECTION_YR","CMTE_ID","CMTE_TP",
-               "CMTE_DSGN","LINKAGE_ID")
-
-names(commitee_link) <- var_names
-
-commitee_link %>% 
-  filter(CAND_ELECTION_YR == 2020)
 
 
 
 # API calls ---------------------------------------------------------------
 
+
+# read in key
 key <- read_lines("fec_key.txt")
 
 
@@ -100,7 +84,7 @@ rep_house <- rep_house %>%
 
 # API calls for candidate - committee match -------------------------------
 
-### function
+### function to gather all candidate IDs
 
 
 
@@ -115,13 +99,11 @@ fec_committee <- function(candidate){
   httr::GET(url) -> raw_json
      
   
-
-  
 }
 
 
 
-### call with possibly
+### call function with possibly
 
 rep_house %>% 
   select(Member) %>% 
@@ -133,7 +115,7 @@ saveRDS(try_map, "Data/Term Paper/list_of_raw_json.RDS")
 
 
 
-### extract committee information from raw json objects
+### function to extract committee information from raw json objects
 
 extract_committee <- function(list_element) {
   
@@ -149,6 +131,8 @@ extract_committee <- function(list_element) {
   
 }
 
+
+### Call function to extract commitee information
 list_of_raw_json %>% 
   map(possibly(.f = extract_committee, otherwise = NA_real_)) -> map_committee
 
@@ -193,13 +177,14 @@ fec_id_df %>% distinct(candidate_ids, .keep_all = T) -> fec_id_df_unique
 
 
 
-### get all independent expenditures for candidates
+
+
+# get all independent expenditures for candidates -------------------------
 
 
 
 
-
-### function to get independent expenditures
+### define function to get independent expenditures
 
 fec_expenditures <- function(candidate){
   
@@ -230,28 +215,29 @@ fec_expenditures <- function(candidate){
 
 ### query independent expenditures
 
+# in for loop
 
-pb <- progress_bar$new(
-  format = "  downloading [:bar] :percent eta: :eta",
-  total = 100, clear = FALSE, width= 60)
+#pb <- progress_bar$new(
+#  format = "  downloading [:bar] :percent eta: :eta",
+#  total = 100, clear = FALSE, width= 60)
 
-for (i in seq_along(fec_id_df$candidate_ids)){
+#for (i in seq_along(fec_id_df$candidate_ids)){
   
-  pb$tick()
+#  pb$tick()
   
-  indep_expenditures_list[[i]] <- fec_expenditures(fec_id_df$candidate_ids[[i]])
+#  indep_expenditures_list[[i]] <- fec_expenditures(fec_id_df$candidate_ids[[i]])
   
-  if(as.integer(indep_expenditures_list[[i]]$headers$`x-ratelimit-remaining`) == 0){
-    print(str_c("Rate limit reached, going to sleep for an hour and will wake up again at: ", Sys.time() + 3600))
-    Sys.sleep(3600)
-    next
-  }
-  print(fec_id_df$candidate_ids[[i]])
-}
+#  if(as.integer(indep_expenditures_list[[i]]$headers$`x-ratelimit-remaining`) == 0){
+#    print(str_c("Rate limit reached, going to sleep for an hour and will wake up again at: ", Sys.time() + 3600))
+#    Sys.sleep(3600)
+#    next
+#  }
+#  print(fec_id_df$candidate_ids[[i]])
+#}
 
 
 
-### map calls
+### call function with map
 
 indep_expenditures_list <- vector(mode = "list", length = length(fec_id_df_unique$candidate_ids))
 
@@ -260,18 +246,12 @@ fec_id_df_unique %>%
   pull() %>% 
   map(possibly(.f = fec_expenditures, otherwise = NA_real_)) -> indep_expenditures_list
 
-
+### save raw information about independent expenditures in list
 
 saveRDS(indep_expenditures_list, "Data/Term Paper/list_of_raw_indep_exp.RDS")
 
-fromJSON(content(indep_expenditures_list[[1]], "text", encoding = "UTF-8"))$results
 
-
-### we don't need the committees right now, so only keep one observation per candidate
-
-
-fec_id_df %>% distinct(candidate_ids, .keep_all = T) -> fec_id_df_unique
-
+### define function to extract information from raw json
 
 extract_indep_exp <- function(list_element){
   
@@ -284,6 +264,7 @@ extract_indep_exp <- function(list_element){
 }
 
 
+### call function with map
 
 indep_expenditures_list %>% 
   map(possibly(.f = extract_indep_exp, otherwise = NA_real_)) -> indep_expenditures_df
@@ -294,7 +275,7 @@ indep_expenditures_df %>%
 indep_expenditures_df <- indep_expenditures_df[-80]
 
 
-### bind rows together
+### bind rows together to data frame
 
 bind_rows(indep_expenditures_df) %>% 
   tibble() -> indep_expenditures_df

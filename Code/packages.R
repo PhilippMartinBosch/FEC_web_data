@@ -37,6 +37,7 @@ pacman::p_load(dplyr,
                rvest,
                polite,
                hrbrthemes,
+               forcats,
                install = TRUE,
                update = FALSE)
 

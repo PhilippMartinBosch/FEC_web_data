@@ -1,7 +1,7 @@
 ### get election results ###
 
 
-# read html from guardian -------------------------------------------------
+# read html from wiki -------------------------------------------------
 
 
 results_url <- "https://en.wikipedia.org/wiki/2020_United_States_House_of_Representatives_elections"
@@ -23,7 +23,7 @@ house_special <- house_results[1]
 house_regular <- house_results[c(2:51)]
 
 
-
+### define function to extract relevant information from html table
 
 clean_results <- function(list_element){
   
@@ -41,13 +41,15 @@ clean_results <- function(list_element){
     filter(party == "Republican")
 }
 
+### call function via map
+
 house_regular_clean <- map(house_regular, clean_results) 
 
 map2(house_regular_clean, state.abb, bind_cols) %>% 
   bind_rows() %>% 
   rename("state_abb" = 7) -> regular_house_df
 
-
+### clean tables to allow merge via district ID
 
 regular_house_df %>%
   separate(District, 

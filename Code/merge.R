@@ -1,11 +1,11 @@
 ### merge finance, election and picture data ###
 
 
-# load df -----------------------------------------------------------------
+# load dfs -----------------------------------------------------------------
 
-fec_df <- readRDS("~/Documents/SEDS/3. Semester/Web Data with R/Web Scraping with R/Data/Term Paper/fec_df.RDS")
-
-
+fec_df <- readRDS("Data/Term Paper/fec_df.RDS")
+election_results_df <- readRDS("Data/Term Paper/election_results_df.RDS")
+race_gender_df <- readRDS("Data/Term Paper/race_gender_df.RDS")
 
 # merging -----------------------------------------------------------------
 

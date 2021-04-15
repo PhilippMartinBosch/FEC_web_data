@@ -35,6 +35,7 @@ bind_cols(aux_info_pictures, image_links) %>%
 
 devtools::install_github('methodds/facerec')
 
+# read in API credentials
 Sys.setenv(kairos_id = read_lines(file = "kairos_key.txt")[1])
 Sys.setenv(kairos_key = read_lines(file = "kairos_key.txt")[2])
 
@@ -52,6 +53,8 @@ prediction_list <- vector(mode = "list", length = length(pictures_df$url))
 
 pb <- progress_bar$new(total = length(pictures_df$url))
 
+### query API with sleep timer for rate limit
+
 for (i in seq_along(pictures_df$url)) {
   
   control <- seq(from = 55, to = length(pictures_df$url), by = 55)
@@ -68,13 +71,15 @@ for (i in seq_along(pictures_df$url)) {
   
 }
 
+### bind rows to create data frame
 
 bind_rows(prediction_list) %>% 
   distinct(img_source, .keep_all = T) -> predict_df
 
+### save raw data frame with predictions
 saveRDS(predict_df, file = "Data/Term Paper/predict_df.RDS")
 
-
+### join wikipedia information with predicted race and gender from kairos
 pictures_df %>% 
   left_join(predict_df, by = c("url" = "img_source")) %>% 
   select(face_asian, face_black, face_hispanic, face_white, face_gender_type, 
@@ -119,16 +124,11 @@ race_gender_df %>%
   unite("state", state.abb, state_numeric, sep = "") -> race_gender_df
 
 
+# save data frame ---------------------------------------------------------
+
+
 saveRDS(race_gender_df, file = "Data/Term Paper/race_gender_df.RDS")
 
-### morgen weiter
-### Daten abschließen: special elections dazu, alle aux Daten joinen
-### PACS finalisieren, lollipop plot
 
-### Dokument aufsetzen, beginnen mit outline
-### wie framen, beobachtung der Entscheidung, hintergründe etc
-
-
-### Donnerstag: House Freedom Donors ziehen
 
 
