@@ -1,5 +1,5 @@
 # Web Scraping with R
-Script and data sets to replicate the Research Paper "Following the money - Investigating campaignfinance patterns behind the Electoral CollegeObjectors"
+Script and data sets to replicate the Research Paper "Following the money - Investigating campaign finance patterns behind the Electoral College Objectors"
 
 ## Scripts
 In order to replicate the analysis please run the scripts in the following order and make sure to include your own API Credentials!
